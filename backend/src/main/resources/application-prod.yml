@@ -1,0 +1,10 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  config:
+    import: optional:file:./.env[.properties]
+
+app:
+  payment:
+    mode: razorpay

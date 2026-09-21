@@ -1,0 +1,21 @@
+{
+  "info": {
+    "name": "InsureHub API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key":"baseUrl","value":"http://localhost:8080/api"},
+    {"key":"token","value":""},
+    {"key":"policyId","value":"1"},
+    {"key":"requestId","value":"1"}
+  ],
+  "item": [
+    {"name":"Register","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"url":"{{baseUrl}}/auth/register","body":{"mode":"raw","raw":"{\n  \"name\": \"Test Customer\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Test@12345\"\n}"}}},
+    {"name":"Login","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"url":"{{baseUrl}}/auth/login","body":{"mode":"raw","raw":"{\n  \"email\": \"demo@insurehub.local\",\n  \"password\": \"Demo@12345\"\n}"}}},
+    {"name":"Plans","request":{"method":"GET","url":"{{baseUrl}}/plans"}},
+    {"name":"Calculate Quote","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{baseUrl}}/quotes/calculate","body":{"mode":"raw","raw":"{\n  \"planId\": 1,\n  \"age\": 25,\n  \"coverageAmount\": 500000,\n  \"durationYears\": 1,\n  \"riskCategory\": \"MEDIUM\",\n  \"discountPercent\": 0\n}"}}},
+    {"name":"My Policies","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/policies/my"}},
+    {"name":"Policy Details","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/policies/{{policyId}}"}},
+    {"name":"Policy History","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{baseUrl}}/policies/{{policyId}}/history"}}
+  ]
+}
