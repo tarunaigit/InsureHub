@@ -1,3 +1,4 @@
+import { useAuth } from "../context/AuthContext";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
@@ -15,6 +16,8 @@ import StatusBadge from "../components/StatusBadge";
 import PageHeader from "../components/PageHeader";
 import Loader from "../components/Loader";
 export default function PolicyDetails() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
   const { id } = useParams();
   const loc = useLocation();
   const nav = useNavigate();
@@ -71,24 +74,28 @@ export default function PolicyDetails() {
           <Stat label="Start" value={p.startDate} icon={CalendarDays} />
           <Stat label="Expiry" value={p.expiryDate} icon={CalendarDays} />
         </div>
-        <div className="details-actions">
-          {["ACTIVE", "RENEWED", "EXPIRED"].includes(p.status) && (
-            <Link className="primary-btn" to={`/policies/${p.id}/renew`}>
-              Renew <RefreshCw size={16} />
-            </Link>
-          )}
-          {["ACTIVE", "RENEWED", "EXPIRED"].includes(p.status) && (
-            <Link className="danger-btn" to={`/policies/${p.id}/cancel`}>
-              Request cancellation <Ban size={16} />
-            </Link>
-          )}
-          {["ACTIVE", "RENEWED", "EXPIRED"].includes(p.status) && (
-            <Link className="outline-btn" to="/claims/new">
-              <FileText size={16} />
-              File a claim
-            </Link>
-          )}
-        </div>
+        {!isAdmin && (
+          <div className="details-actions">
+            {["ACTIVE", "RENEWED", "EXPIRED"].includes(p.status) && (
+              <Link className="primary-btn" to={`/policies/${p.id}/renew`}>
+                Renew <RefreshCw size={16} />
+              </Link>
+            )}
+
+            {["ACTIVE", "RENEWED", "EXPIRED"].includes(p.status) && (
+              <Link className="danger-btn" to={`/policies/${p.id}/cancel`}>
+                Request cancellation <Ban size={16} />
+              </Link>
+            )}
+
+            {["ACTIVE", "RENEWED", "EXPIRED"].includes(p.status) && (
+              <Link className="outline-btn" to="/claims/new">
+                <FileText size={16} />
+                File a claim
+              </Link>
+            )}
+          </div>
+        )}
       </div>
       <div className="content-grid">
         <section className="details-card">

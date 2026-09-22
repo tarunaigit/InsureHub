@@ -3,6 +3,7 @@ package com.insurehub.controller;
 import com.insurehub.dto.ClaimDtos;
 import com.insurehub.service.ClaimService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +27,17 @@ public class ClaimController {
             @Valid @RequestBody
             ClaimDtos.CreateClaimRequest request
     ) {
+
+        boolean isAdmin = authentication.getAuthorities()
+                .stream()
+                .anyMatch(authority ->
+                        authority.getAuthority().equals("ROLE_ADMIN"));
+
+        if (isAdmin) {
+            throw new AccessDeniedException(
+                    "Admins cannot file claims."
+            );
+        }
 
         return claims.create(
                 authentication.getName(),
