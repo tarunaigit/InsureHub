@@ -73,6 +73,14 @@ export const policyApi = {
   cancel: (id) => api.post(`/policies/${id}/cancel`),
 };
 
+export const claimApi = {
+  create: (data) => api.post("/claims", data),
+
+  mine: () => api.get("/claims/my"),
+
+  get: (id) => api.get(`/claims/${id}`),
+};
+
 export const adminApi = {
   stats: () => api.get("/admin/stats"),
 
@@ -95,27 +103,23 @@ export const adminApi = {
 
   claims: () => api.get("/admin/claims"),
 
-  updateClaim: (id, data) => api.put(`/admin/claims/${id}/status`, data),
-
+  updateClaimStatus: (id, data) => api.put(`/admin/claims/${id}/status`, data), 
 };
 
 export const paymentApi = {
-  order: (policyId) => api.post("/payments/order", { policyId }),
+  order: (policyId) =>
+    api.post("/payments/order", {
+      policyId,
+    }),
 
   renewalOrder: (policyId) =>
     api.post(`/payments/renewal-order?policyId=${policyId}`),
 
-  verify: (data) => api.post("/payments/verify", data),
+  verify: (data) =>
+    api.post("/payments/verify", data),
 
-  forPolicy: (id) => api.get(`/payments/policy/${id}`),
+  forPolicy: (id) =>
+    api.get(`/payments/policy/${id}`),
 };
-
-export const claimApi = {
-  create: (data) => api.post("/claims", data),
-
-  mine: () => api.get("/claims/my"),
-
-  get: (id) => api.get(`/claims/${id}`),
-};  
 
 export default api;

@@ -29,14 +29,6 @@ export default function RenewPolicy() {
     setError("");
 
     try {
-      /*
-       * STEP 1:
-       * Create a NEW payment order using the
-       * server-calculated renewal premium.
-       */
-      console.log("paymentApi:", paymentApi);
-      console.log("renewalOrder:", paymentApi.renewalOrder);
-
       const orderResponse = await paymentApi.renewalOrder(id);
 
       const order = orderResponse.data;

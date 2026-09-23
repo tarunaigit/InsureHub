@@ -84,6 +84,14 @@ export default function AdminPolicies() {
         </button>
       </div>
       <div className="table-card admin-table">
+        <div className="table-head">
+          <span>Policy ID</span>
+          <span>Customer's email</span>
+          <span>Plan</span>
+          <span>Status</span>
+          <span>Premium</span>
+          <span>Action</span>
+        </div>
         {filtered.map((p) => (
           <div className="table-row" key={p.id}>
             <span>

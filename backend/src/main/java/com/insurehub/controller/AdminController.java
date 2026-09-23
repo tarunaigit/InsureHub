@@ -9,7 +9,6 @@ import com.insurehub.service.CancellationService;
 import com.insurehub.service.PlanService;
 
 import com.insurehub.dto.ClaimDtos;
-import com.insurehub.service.ClaimService;
 
 import com.insurehub.dto.ReminderDtos;
 import com.insurehub.service.RenewalReminderService;
@@ -28,19 +27,16 @@ public class AdminController {
     private final AdminService admin;
     private final CancellationService cancellations;
     private final PlanService plans;
-    private final ClaimService claimService;
     private final RenewalReminderService reminders;
 
     public AdminController(
             AdminService admin,
             CancellationService cancellations,
             PlanService plans,
-            ClaimService claimService,
             RenewalReminderService reminders) {
         this.admin = admin;
         this.cancellations = cancellations;
         this.plans = plans;
-        this.claimService = claimService;
         this.reminders = reminders;
     }
 
@@ -85,26 +81,9 @@ public class AdminController {
                 authentication.getName());
     }
 
-    @PutMapping("/claims/{id}/status")
-    public ClaimDtos.ClaimResponse updateClaim(
-            Authentication authentication,
-            @PathVariable Long id,
-            @Valid @RequestBody ClaimDtos.UpdateClaimRequest request) {
-
-        return claimService.updateStatus(
-                id,
-                request,
-                authentication.getName());
-    }
-
     @GetMapping("/plans")
     public List<PlanDtos.PlanResponse> allPlans() {
         return plans.all();
-    }
-
-    @GetMapping("/claims")
-    public List<ClaimDtos.ClaimResponse> claims() {
-        return claimService.all();
     }
 
     @GetMapping("/reminders")

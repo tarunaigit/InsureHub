@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Edit3, Plus, Power } from "lucide-react";
+import { Edit3, Plus, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { adminApi, planApi } from "../services/api";
 import PageHeader from "../components/PageHeader";
@@ -22,6 +22,8 @@ export default function AdminPlans() {
   const [form, setForm] = useState(empty);
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     try {
@@ -29,7 +31,8 @@ export default function AdminPlans() {
 
       const r = await adminApi.plans();
 
-      setPlans(r.data);
+      // Only active plans are shown in the All Plans catalogue.
+      setPlans(r.data.filter((p) => p.status === "ACTIVE"));
     } catch (e) {
       const message = e.response?.data?.message || "Could not load plans.";
 
@@ -41,6 +44,58 @@ export default function AdminPlans() {
   useEffect(() => {
     load();
   }, []);
+
+  const openDeleteModal = (plan) => {
+    setSelectedPlan(plan);
+  };
+
+  const closeDeleteModal = () => {
+    if (!deleting) {
+      setSelectedPlan(null);
+    }
+  };
+
+  const confirmDelete = async () => {
+  if (!selectedPlan) {
+    return;
+  }
+
+  try {
+    setDeleting(true);
+    setError("");
+
+    await planApi.remove(selectedPlan.id);
+
+    toast.success("Plan deleted successfully.");
+
+    setPlans((current) =>
+      current.filter(
+        (p) => p.id !== selectedPlan.id
+      )
+    );
+
+    // Clear the edit form if the deleted plan
+    // was currently being edited.
+    if (editId === selectedPlan.id) {
+      setForm({
+        ...empty,
+      });
+
+      setEditId(null);
+    }
+
+    setSelectedPlan(null);
+  } catch (e) {
+    const message =
+      e.response?.data?.message ||
+      "Could not delete plan.";
+
+    setError(message);
+    toast.error(message);
+  } finally {
+    setDeleting(false);
+  }
+};
 
   const submit = async (e) => {
     e.preventDefault();
@@ -106,22 +161,13 @@ export default function AdminPlans() {
     setError("");
   };
 
-  const remove = async (id) => {
-    if (confirm("Deactivate this plan?")) {
-      try {
-        await planApi.remove(id);
+  const startNewPlan = () => {
+    setForm({
+      ...empty,
+    });
 
-        toast.success("Plan deactivated.");
-
-        await load();
-      } catch (e) {
-        const message = e.response?.data?.message || "Could not deactivate.";
-
-        setError(message);
-
-        toast.error(message);
-      }
-    }
+    setEditId(null);
+    setError("");
   };
 
   return (
@@ -129,19 +175,9 @@ export default function AdminPlans() {
       <PageHeader
         eyebrow="Admin"
         title="Manage insurance plans"
-        subtitle="Create, update and deactivate insurance plans. The discount is configured per plan and applied automatically during premium calculation."
+        subtitle="Create, update and remove insurance plans. The discount is configured per plan and applied automatically during premium calculation."
         actions={
-          <button
-            className="outline-btn"
-            onClick={() => {
-              setForm({
-                ...empty,
-              });
-
-              setEditId(null);
-              setError("");
-            }}
-          >
+          <button type="button" className="outline-btn" onClick={startNewPlan}>
             <Plus size={16} />
             New plan
           </button>
@@ -149,6 +185,10 @@ export default function AdminPlans() {
       />
 
       <div className="admin-grid">
+        {/* =========================
+            CREATE / EDIT PLAN FORM
+            ========================= */}
+
         <form className="details-card form-card" onSubmit={submit}>
           <div className="form-section">
             <h3>
@@ -191,15 +231,10 @@ export default function AdminPlans() {
                 }
               >
                 <option>HEALTH</option>
-
                 <option>VEHICLE</option>
-
                 <option>LIFE</option>
-
                 <option>HOME</option>
-
                 <option>TRAVEL</option>
-
                 <option>FAMILY</option>
               </select>
             </label>
@@ -322,6 +357,10 @@ export default function AdminPlans() {
           </div>
         </form>
 
+        {/* =========================
+            PLAN CATALOGUE
+            ========================= */}
+
         <section className="details-card">
           <div className="section-heading tight">
             <div>
@@ -338,33 +377,110 @@ export default function AdminPlans() {
                   <b>{p.name}</b>
 
                   <span>
-                    {p.type} • {p.status}
+                    {p.type}
+                    {" • "}
+                    {p.status}
                     {" • "}
                     Discount {p.discountPercent ?? 0}%
                   </span>
                 </div>
 
-                <div className="row-actions">
-                  <button className="outline-btn small" onClick={() => edit(p)}>
+                <div className="row-actions plan-row-actions">
+                  {/* EDIT */}
+                  <button
+                    type="button"
+                    className="outline-btn small"
+                    onClick={() => edit(p)}
+                  >
                     <Edit3 size={15} />
                     Edit
                   </button>
 
-                  {p.status === "ACTIVE" && (
-                    <button
-                      className="danger-icon-btn"
-                      onClick={() => remove(p.id)}
-                      title="Deactivate"
-                    >
-                      <Power size={16} />
-                    </button>
-                  )}
+                  {/* DELETE */}
+                  <button
+                    type="button"
+                    className="delete-icon-btn"
+                    onClick={() => openDeleteModal(p)}
+                    title="Delete plan"
+                    aria-label="Delete plan"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
             ))}
+
+            {!plans.length && (
+              <div className="empty-card">
+                <h3>No plans available</h3>
+                <p>Create a new insurance plan to add it to the catalogue.</p>
+              </div>
+            )}
           </div>
         </section>
       </div>
+
+      {/* =========================
+          DELETE CONFIRMATION MODAL
+          ========================= */}
+
+      {selectedPlan && (
+        <div className="delete-modal-backdrop" onMouseDown={closeDeleteModal}>
+          <div
+            className="delete-modal"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            {/* CLOSE */}
+            <button
+              type="button"
+              className="delete-modal-close"
+              onClick={closeDeleteModal}
+              disabled={deleting}
+              aria-label="Close"
+            >
+              <X size={19} />
+            </button>
+
+            {/* ICON */}
+            <div className="delete-modal-icon">
+              <Trash2 size={22} />
+            </div>
+
+            {/* TITLE */}
+            <h3>Delete plan?</h3>
+
+            {/* DESCRIPTION */}
+            <p>
+              Are you sure you want to delete{" "}
+              <strong>"{selectedPlan.name}"</strong>
+              ?
+            </p>
+
+            {/* ACTIONS */}
+            <div className="delete-modal-actions">
+              <button
+                type="button"
+                className="outline-btn"
+                onClick={closeDeleteModal}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="danger-btn"
+                onClick={confirmDelete}
+                disabled={deleting}
+              >
+                <Trash2 size={16} />
+
+                {deleting ? "Deleting..." : "Delete plan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

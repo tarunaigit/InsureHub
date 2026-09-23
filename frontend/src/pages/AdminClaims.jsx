@@ -25,8 +25,7 @@ export default function AdminClaims() {
       const response = await adminApi.claims();
       setClaims(response.data || []);
     } catch (e) {
-      const message =
-        e.response?.data?.message || "Unable to load claims.";
+      const message = e.response?.data?.message || "Unable to load claims.";
 
       setError(message);
       toast.error(message);
@@ -39,21 +38,20 @@ export default function AdminClaims() {
     loadClaims();
   }, []);
 
-  const updateClaim = async (id, status) => {
+  const updateClaim = async (id, status, adminRemarks) => {
     try {
       setUpdating(id);
 
-      await adminApi.updateClaim(id, {
+      await adminApi.updateClaimStatus(id, {
         status,
-        adminRemarks: remarks[id] || "",
+        adminRemarks: adminRemarks || "",
       });
 
-      toast.success(`Claim marked as ${status}.`);
+      toast.success(`Claim ${status.toLowerCase()} successfully.`);
 
       await loadClaims();
     } catch (e) {
-      const message =
-        e.response?.data?.message || "Unable to update claim.";
+      const message = e.response?.data?.message || "Unable to update claim.";
 
       toast.error(message);
     } finally {
@@ -97,32 +95,20 @@ export default function AdminClaims() {
 
           <h1>Manage claims</h1>
 
-          <p>
-            Review and manage insurance claims submitted by customers.
-          </p>
+          <p>Review and manage insurance claims submitted by customers.</p>
         </div>
 
-        <button
-          className="outline-btn"
-          onClick={loadClaims}
-          disabled={loading}
-        >
+        <button className="outline-btn" onClick={loadClaims} disabled={loading}>
           <RefreshCw size={16} />
           Refresh
         </button>
       </div>
 
-      {error && (
-        <div className="error-box">
-          {error}
-        </div>
-      )}
+      {error && <div className="error-box">{error}</div>}
 
       {loading ? (
         <div className="details-card">
-          <div className="screen-center">
-            Loading claims...
-          </div>
+          <div className="screen-center">Loading claims...</div>
         </div>
       ) : claims.length === 0 ? (
         <div className="details-card empty-state">
@@ -130,9 +116,7 @@ export default function AdminClaims() {
 
           <h2>No claims yet</h2>
 
-          <p>
-            Customer-submitted claims will appear here.
-          </p>
+          <p>Customer-submitted claims will appear here.</p>
         </div>
       ) : (
         <div className="admin-list">
@@ -140,9 +124,7 @@ export default function AdminClaims() {
             <div className="details-card" key={claim.id}>
               <div className="admin-list-header">
                 <div>
-                  <span className="eyebrow">
-                    {claim.claimNumber}
-                  </span>
+                  <span className="eyebrow">{claim.claimNumber}</span>
 
                   <h2>{claim.claimType}</h2>
                 </div>
@@ -173,12 +155,9 @@ export default function AdminClaims() {
                   <span>Claim amount</span>
                   <strong>
                     ₹{" "}
-                    {Number(claim.claimAmount || 0).toLocaleString(
-                      "en-IN",
-                      {
-                        minimumFractionDigits: 2,
-                      }
-                    )}
+                    {Number(claim.claimAmount || 0).toLocaleString("en-IN", {
+                      minimumFractionDigits: 2,
+                    })}
                   </strong>
                 </div>
 
@@ -191,9 +170,7 @@ export default function AdminClaims() {
                   <span>Submitted</span>
                   <strong>
                     {claim.createdAt
-                      ? new Date(claim.createdAt).toLocaleString(
-                          "en-IN"
-                        )
+                      ? new Date(claim.createdAt).toLocaleString("en-IN")
                       : "-"}
                   </strong>
                 </div>
@@ -229,7 +206,7 @@ export default function AdminClaims() {
                     className="outline-btn"
                     disabled={updating === claim.id}
                     onClick={() =>
-                      updateClaim(claim.id, "UNDER_REVIEW")
+                      updateClaim(claim.id, "UNDER_REVIEW", remarks[claim.id])
                     }
                   >
                     <Clock3 size={16} />
@@ -240,7 +217,7 @@ export default function AdminClaims() {
                     className="primary-btn"
                     disabled={updating === claim.id}
                     onClick={() =>
-                      updateClaim(claim.id, "APPROVED")
+                      updateClaim(claim.id, "APPROVED", remarks[claim.id])
                     }
                   >
                     <CheckCircle2 size={16} />
@@ -251,7 +228,7 @@ export default function AdminClaims() {
                     className="danger-btn"
                     disabled={updating === claim.id}
                     onClick={() =>
-                      updateClaim(claim.id, "REJECTED")
+                      updateClaim(claim.id, "REJECTED", remarks[claim.id])
                     }
                   >
                     <XCircle size={16} />
